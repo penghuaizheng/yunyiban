@@ -55,7 +55,7 @@ jwt:
     tokenHead: Bearer
 phz:
   oss:
-    access-key-secret: mlNSMdBnwH5hLbIRJS0u6LtoCLklTH
-    endpoint: http://oss-cn-hangzhou.aliyuncs.com
-    bucket-name: phztest
-    access-key-id: LTAI5tMjKTTVgGLHSFLoiKk7
+    access-key-secret:
+    endpoint:
+    bucket-name:
+    access-key-id:
