@@ -12,6 +12,7 @@ import com.huashan.yebserver.mapper.*;
 import com.huashan.yebserver.service.IAdminService;
 import com.huashan.yebserver.utils.JwtUtil;
 import com.huashan.yebserver.utils.RedisUtil;
+import io.github.penghuaizheng.util.AliOSSUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,11 +21,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.multipart.MultipartFile;
 import xin.altitude.cms.common.entity.AjaxResult;
 import xin.altitude.cms.common.entity.PageEntity;
 import xin.altitude.cms.common.util.EntityUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.*;
 
 @Service
@@ -48,6 +51,8 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     private RoleMapper roleMapper;
     @Autowired
     private AdminRoleMapper adminRoleMapper;
+    @Autowired
+    private AliOSSUtils aliOSSUtils;
 
     @Override
     public AjaxResult login(AdminParameter adminParameter, HttpServletRequest request) {
@@ -239,6 +244,24 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         List<AdminVo> adminVos = EntityUtils.toList(admins, AdminVo::new);
         extracted(adminVos);
         return AjaxResult.success("获取管理员列表成功", adminVos);
+    }
+
+    @Override
+    public boolean upload(MultipartFile file) throws IOException {
+        AdminVo adminVo = (AdminVo) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String upload = aliOSSUtils.upload(file);
+        if (StringUtils.isEmpty(upload)) {
+            return false;
+        }
+        Admin admin = adminVo;
+        admin.setUserface(upload);
+        int i = adminMapper.updateById(admin);
+        if (i < 0) {
+            return false;
+        }
+        adminVo.setUserface(upload);
+        redisUtil.set("security:" + admin.getUsername(), adminVo);
+        return true;
     }
 
 

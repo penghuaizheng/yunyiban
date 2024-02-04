@@ -5,14 +5,17 @@ import com.huashan.yebserver.domain.Position;
 import com.huashan.yebserver.domain.vo.AdminParameter;
 import com.huashan.yebserver.domain.vo.AdminVo;
 import com.huashan.yebserver.service.IAdminService;
+import io.github.penghuaizheng.util.AliOSSUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import xin.altitude.cms.common.entity.AjaxResult;
 import xin.altitude.cms.common.entity.PageEntity;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 
 @RestController
 @Api(tags = "LoginController")
@@ -21,6 +24,8 @@ import javax.servlet.http.HttpServletRequest;
 public class LoginController {
     @Autowired
     private IAdminService adminService;
+    @Autowired
+    private AliOSSUtils aliOSSUtils;
 
     @PostMapping("/login")
     @ApiOperation(value = "登录之后返回token")
@@ -51,29 +56,44 @@ public class LoginController {
     public AjaxResult page(PageEntity pageEntity, Admin admin) {
         return adminService.pageList(pageEntity, admin);
     }
+
     @GetMapping("/list")
     @ApiOperation(value = "获取管理员列表")
     public AjaxResult list(Admin admin) {
         return adminService.allAdmins(admin);
     }
+
     @PutMapping("/edit")
     @ApiOperation(value = "修改管理员")
     public AjaxResult edit(@RequestBody AdminVo adminVo) {
         return adminService.editById(adminVo);
     }
+
     @DeleteMapping("/delete")
     @ApiOperation(value = "删除管理员")
     public AjaxResult delete(Integer[] ids) {
         return adminService.deleteBatchByIds(ids);
     }
+
     @PutMapping("/personaledit")
     @ApiOperation("修改个人信息")
-    public AjaxResult edit(@RequestBody Admin admin){
+    public AjaxResult edit(@RequestBody Admin admin) {
         return adminService.edit(admin);
     }
+
     @PutMapping("/passwordedit")
     @ApiOperation("修改密码")
-    public AjaxResult editPassword(@RequestBody AdminParameter adminParameter){
+    public AjaxResult editPassword(@RequestBody AdminParameter adminParameter) {
         return adminService.editPassword(adminParameter);
+    }
+
+    @PostMapping("/upload")
+    @ApiOperation("修改头像")
+    public AjaxResult upload(MultipartFile file) throws IOException {
+        boolean b = adminService.upload(file);
+        if (b) {
+            return AjaxResult.success("上传成功", null);
+        }
+        return AjaxResult.error("上传失败");
     }
 }
